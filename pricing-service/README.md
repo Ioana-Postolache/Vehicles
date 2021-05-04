@@ -5,7 +5,7 @@ would store and retrieve the price of a vehicle given a vehicle id as
 input. 
 `http://localhost:8082/services/price?vehicleId=1`
 
-It is converted to a microservice.
+It is converted to a microservice accessible at: `http://localhost:8082/prices`
 
 
 ## Features
