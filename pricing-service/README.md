@@ -1,8 +1,11 @@
 # Pricing Service
 
-The Pricing Service is a REST WebService that simulates a backend that
+The Pricing Service starts from REST WebService that simulates a backend that
 would store and retrieve the price of a vehicle given a vehicle id as
-input. In this project, you will convert it to a microservice.
+input. 
+`http://localhost:8082/services/price?vehicleId=1`
+
+It is converted to a microservice.
 
 
 ## Features
@@ -37,7 +40,8 @@ This launches the Pricing Service as a Spring Boot application.
 
 ### PricingController `pricing.api`
 
-This is our actual REST controller for the application. This implements what a GET request will respond with - in this case, a randomly generated price gathered from the PricingService. Once converted to a microservice, the Controller should not be explicitly necessary.
+This is our actual REST controller for the application. This implements what a GET request will respond with - in this case, a randomly generated price gathered from the PricingService. 
+Once converted to a microservice, the Controller should not be explicitly necessary.
 
 ### Price `pricing.domain.price`
 
@@ -53,5 +57,6 @@ This creates a PriceException that can be thrown when an issue arises in the Pri
 
 ### PricingService
 
-The Pricing Service does most of the legwork of the code. Here, it creates a mapping of random prices to IDs, as well as the method (in our mock service here) to generate the random prices. Once converted to a microservice, the Service should not be explicitly necessary.
+The Pricing Service does most of the legwork of the code. Here, it creates a mapping of random prices to IDs, as well as the method (in our mock service here) to generate the random prices. 
+Once converted to a microservice, the Service should not be explicitly necessary.
 
