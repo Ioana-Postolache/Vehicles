@@ -68,7 +68,11 @@ Swagger UI: http://localhost:8080/swagger-ui.html
    }
 }
 ```
+![POST car](src/main/resources/static/images/Cars%20-%20POST%20car.png)
+### Retrieve all Vehicles
 
+`GET` `/cars`
+![GET all cars](src/main/resources/static/images/Cars%20-%20GET%20car.png)
 ### Retrieve a Vehicle
 
 `GET` `/cars/{id}`
@@ -173,7 +177,7 @@ This declares the Manufacturer class, primarily just made of a ID code and name 
 
 ### ManufacturerRepository
 
-This repository provide a type of data persistence while the web service runs, primarily to store manufacturer information like that initialized in VehiclesApiApplication.
+This repository provides a type of data persistence while the web service runs, primarily to store manufacturer information like that initialized in VehiclesApiApplication.
 
 ### CarNotFoundException `vehicles.domain`
 
