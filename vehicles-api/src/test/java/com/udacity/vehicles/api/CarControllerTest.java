@@ -1,5 +1,6 @@
 package com.udacity.vehicles.api;
 
+import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.udacity.vehicles.client.maps.MapsClient;
 import com.udacity.vehicles.client.prices.PriceClient;
@@ -99,12 +100,20 @@ public class CarControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
-        String response = mvcResult.getResponse().getContentAsString();
+        DocumentContext response = JsonPath.parse(mvcResult.getResponse().getContentAsString());
 
-        Assert.assertEquals((int) JsonPath.parse(response).read("$._embedded.carList.length()"), 1);
-        final LinkedHashMap actualCarDetails = JsonPath.parse(response).read("$._embedded.carList[0].details");
+        Assert.assertEquals((int) response.read("$._embedded.carList.length()"), 1);
+        final LinkedHashMap actualCarDetails = response.read("$._embedded.carList[0].details");
         final LinkedHashMap expectedCarDetails = JsonPath.parse(json.write(getCar()).getJson()).read("$.details");
         Assert.assertEquals(expectedCarDetails, actualCarDetails);
+
+        Long firstCarId =  ((Number)response.read("$._embedded.carList[0].id")).longValue();
+        Assert.assertEquals(getCar().getPrice(), priceClient.getPrice(firstCarId));
+
+        Double firstCarLat =  ((Number)response.read("$._embedded.carList[0].location.lat")).doubleValue();
+        Double firstCarLon =  ((Number)response.read("$._embedded.carList[0].location.lon")).doubleValue();
+        Location firstCarAddress = mapsClient.getAddress(new Location(firstCarLat, firstCarLon));
+        Assert.assertEquals(mapsClient.getAddress(getCar().getLocation()), firstCarAddress);
     }
 
     /**
@@ -115,11 +124,13 @@ public class CarControllerTest {
     @Test
     public void findCar() throws Exception {
         String model = getCar().getDetails().getModel();
+
         mvc.perform(
                 get("/cars/{vehicleId}", "1"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.details.model").value(model));
+                .andExpect(jsonPath("$.details.model").value(model))
+                .andExpect(jsonPath("$.price").value(priceClient.getPrice(1L)));
     }
 
     /**
@@ -133,9 +144,9 @@ public class CarControllerTest {
         updatedCar.getDetails().setModel("newModel");
         MvcResult mvcResult = mvc.perform(
                 put("/cars/{vehicleId}", "1")
-                .content(json.write(updatedCar).getJson())
-                .contentType(MediaType.APPLICATION_JSON_UTF8)
-                .accept(MediaType.APPLICATION_JSON_UTF8))
+                        .content(json.write(updatedCar).getJson())
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .accept(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(status().isOk())
                 .andReturn();
         String response = mvcResult.getResponse().getContentAsString();
