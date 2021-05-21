@@ -34,7 +34,27 @@ public class CarService {
      * @return a list of all vehicles in the CarRepository
      */
     public List<Car> list() {
-        return repository.findAll();
+        List<Car> allCars  = repository.findAll();
+        // Loop through all cars to get their price and their address
+        for (Car car:allCars) {
+            Long id = car.getId();
+            //  Uses the Pricing Web client you create in `VehiclesApiApplication`
+            //    to get the price based on the `id` input'
+            String price = priceClient.getPrice(id);
+            // Set the price of the car
+            car.setPrice(price);
+
+            // Uses the Maps Web client you create in `VehiclesApiApplication`
+            //   to get the address for the vehicle. You should access the location
+            //   from the car object and feed it to the Maps service.
+
+            Location newCarLocation = mapsClient.getAddress(car.getLocation());
+            // Set the location of the vehicle, including the address information
+            car.setLocation(newCarLocation);
+
+            repository.save(car);
+        }
+        return allCars;
     }
 
     /**
@@ -82,6 +102,7 @@ public class CarService {
                     .map(carToBeUpdated -> {
                         carToBeUpdated.setDetails(car.getDetails());
                         carToBeUpdated.setLocation(car.getLocation());
+                        carToBeUpdated.setCondition(car.getCondition());
                         return repository.save(carToBeUpdated);
                     }).orElseThrow(CarNotFoundException::new);
         }

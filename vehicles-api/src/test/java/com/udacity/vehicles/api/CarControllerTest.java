@@ -1,5 +1,6 @@
 package com.udacity.vehicles.api;
 
+import com.jayway.jsonpath.JsonPath;
 import com.udacity.vehicles.client.maps.MapsClient;
 import com.udacity.vehicles.client.prices.PriceClient;
 import com.udacity.vehicles.domain.Condition;
@@ -8,6 +9,7 @@ import com.udacity.vehicles.domain.car.Car;
 import com.udacity.vehicles.domain.car.Details;
 import com.udacity.vehicles.domain.manufacturer.Manufacturer;
 import com.udacity.vehicles.service.CarService;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,11 +22,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.net.URI;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 
-import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -91,14 +94,17 @@ public class CarControllerTest {
      */
     @Test
     public void listCars() throws Exception {
-        String model = getCar().getDetails().getModel();
-        mvc.perform(
+        MvcResult mvcResult = mvc.perform(
                 get(new URI("/cars")))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.carList", hasSize(1)))
-                .andExpect(jsonPath("$._embedded.carList[0].details.model").value(model));
+                .andReturn();
+        String response = mvcResult.getResponse().getContentAsString();
 
+        Assert.assertEquals((int) JsonPath.parse(response).read("$._embedded.carList.length()"), 1);
+        final LinkedHashMap actualCarDetails = JsonPath.parse(response).read("$._embedded.carList[0].details");
+        final LinkedHashMap expectedCarDetails = JsonPath.parse(json.write(getCar()).getJson()).read("$.details");
+        Assert.assertEquals(expectedCarDetails, actualCarDetails);
     }
 
     /**
@@ -114,6 +120,28 @@ public class CarControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.details.model").value(model));
+    }
+
+    /**
+     * Tests the update operation for a single car by ID.
+     *
+     * @throws Exception if the read operation for a single car fails
+     */
+    @Test
+    public void updateCar() throws Exception {
+        Car updatedCar = getCar();
+        updatedCar.getDetails().setModel("newModel");
+        MvcResult mvcResult = mvc.perform(
+                put("/cars/{vehicleId}", "1")
+                .content(json.write(updatedCar).getJson())
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .accept(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andReturn();
+        String response = mvcResult.getResponse().getContentAsString();
+        final LinkedHashMap actualCarDetails = JsonPath.parse(response).read("$.details");
+        final LinkedHashMap expectedCarDetails = JsonPath.parse(json.write(getCar()).getJson()).read("$.details");
+        Assert.assertEquals(expectedCarDetails, actualCarDetails);
     }
 
     /**
